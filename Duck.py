@@ -184,5 +184,7 @@ if __name__ == "__main__":
                         break
             
             print(f"Move {i}: {moved_vehicle} to {positions} (cost: {cost})")
+            print('hello world')
     else:
         print("No solution found.")
+#code da duoc sua
