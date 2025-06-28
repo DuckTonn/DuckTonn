@@ -22,9 +22,9 @@ class RushHourGame:
         """Check if the red car (usually 'X') is at the exit position."""
         for vehicle, info in state['vehicles'].items():
             if vehicle == 'X':
-                row, col = info['positions'][0]
-                if info['orientation'] == 'horizontal' and col == self.exit_col:
-                    return True
+                for row, col in info['positions']:
+                    if info['orientation'] == 'horizontal' and col == self.exit_col:
+                        return True
         return False
     
     def get_successors(self, state):
@@ -107,85 +107,92 @@ class RushHourGame:
         return new_state
 
 def uniform_cost_search(game):
-    """Perform Uniform Cost Search with cost = length × unit_cost."""
     initial_state = {
         'board': deepcopy(game.board),
         'vehicles': deepcopy(game.vehicles)
     }
     
-    # Priority queue: (total_cost, state, path)
+    def get_state_hash(state):
+        vehicles_tuple = tuple(
+            (v, tuple(info['positions']), info['orientation'])
+            for v, info in sorted(state['vehicles'].items())
+        )
+        board_tuple = tuple(tuple(row) for row in state['board'])
+        return (board_tuple, vehicles_tuple)
+    state_hash = get_state_hash(initial_state)
+    
+    state_repository = {state_hash: initial_state}
+    
     frontier = []
-    heapq.heappush(frontier, (0, initial_state, []))
+    heapq.heappush(frontier, (0, state_hash, []))
     
     explored = set()
-    
+
     while frontier:
-        total_cost, current_state, path = heapq.heappop(frontier)
-        
-        # Check if current state is the goal
+        total_cost, current_hash, path = heapq.heappop(frontier)
+        current_state = state_repository[current_hash]
+
+        if current_hash in explored:
+            continue
+        explored.add(current_hash)
+
         if game.is_goal(current_state):
             return path, total_cost
-        
-        # Skip if already explored
-        state_hash = str(current_state['board'])
-        if state_hash in explored:
-            continue
-            
-        explored.add(state_hash)
-        
-        # Generate successors
+
         for successor, cost in game.get_successors(current_state):
-            successor_hash = str(successor['board'])
+            successor_hash = get_state_hash(successor)
+            
             if successor_hash not in explored:
                 new_cost = total_cost + cost
-                new_path = path + [(successor['vehicles']['X']['positions'], new_cost)]
-                heapq.heappush(frontier, (new_cost, successor, new_path))
+                
+                # Tìm xe di chuyển
+                moved_vehicle = None
+                for vehicle in current_state['vehicles']:
+                    if current_state['vehicles'][vehicle]['positions'] != successor['vehicles'][vehicle]['positions']:
+                        moved_vehicle = vehicle
+                        break
+                
+                # Xác định hướng di chuyển
+                direction = ""
+                if moved_vehicle:
+                    old_pos = current_state['vehicles'][moved_vehicle]['positions'][0]
+                    new_pos = successor['vehicles'][moved_vehicle]['positions'][0]
+                    if current_state['vehicles'][moved_vehicle]['orientation'] == 'horizontal':
+                        direction = "right" if new_pos[1] > old_pos[1] else "left"
+                    else:
+                        direction = "down" if new_pos[0] > old_pos[0] else "up"
+                
+                # Lưu state mới vào repository
+                state_repository[successor_hash] = successor
+                
+                # Thêm vào frontier
+                new_path = path + [(moved_vehicle, direction, new_cost)]
+                heapq.heappush(frontier, (new_cost, successor_hash, new_path))
     
-    return None, float('inf')  # No solution found
-
+    return None, float('inf')
 # Example usage
 if __name__ == "__main__":
     # Example Rush Hour board (6x6)
     board = [
         ['.', '.', '.', '.', '.', '.'],
         ['.', '.', '.', '.', '.', '.'],
-        ['A', 'A', 'X', 'X', 'B', '.'],
-        ['.', '.', 'C', 'D', 'B', '.'],
-        ['.', '.', 'C', 'D', 'E', 'E'],
-        ['.', '.', 'F', 'F', 'F', '.']
+        ['A', 'A', 'X', 'X', '.', '.'],
+        ['.', '.', '.', '.', '.', '.'],
+        ['.', '.', '.', '.', '.', '.'],
+        ['.', '.', '.', '.', '.', '.']
     ]
-    
+
     vehicles = {
-        'X': {'positions': [(2, 2), (2, 3)], 'orientation': 'horizontal'},  # length=2
-        'A': {'positions': [(2, 0), (2, 1)], 'orientation': 'horizontal'},  # length=2
-        'B': {'positions': [(2, 4), (3, 4)], 'orientation': 'vertical'},    # length=2
-        'C': {'positions': [(3, 2), (4, 2)], 'orientation': 'vertical'},    # length=2
-        'D': {'positions': [(3, 3), (4, 3)], 'orientation': 'vertical'},    # length=2
-        'E': {'positions': [(4, 4), (4, 5)], 'orientation': 'horizontal'},  # length=2
-        'F': {'positions': [(5, 2), (5, 3), (5, 4)], 'orientation': 'horizontal'}  # length=3
+        'X': {'positions': [(2, 2), (2, 3)], 'orientation': 'horizontal'},
+        'A': {'positions': [(2, 0), (2, 1)], 'orientation': 'horizontal'}
     }
-    
-    unit_cost = 1  # Cost per unit length
+    unit_cost = 1
     game = RushHourGame(board, vehicles, unit_cost)
     solution_path, total_cost = uniform_cost_search(game)
     
     if solution_path:
         print(f"Solution found with total cost {total_cost}!")
-        for i, (positions, cost) in enumerate(solution_path, 1):
-            # Find which vehicle moved by comparing with previous state
-            if i == 1:
-                moved_vehicle = 'X'  # Assuming first move is by the red car
-            else:
-                # Compare positions to find which vehicle moved
-                prev_positions = solution_path[i-2][0]
-                for vehicle, info in game.vehicles.items():
-                    if info['positions'] != positions and len(info['positions']) == len(positions):
-                        moved_vehicle = vehicle
-                        break
-            
-            print(f"Move {i}: {moved_vehicle} to {positions} (cost: {cost})")
-            print('hello world')
+        for i, (vehicle, direction, cost) in enumerate(solution_path, 1):
+            print(f"Step {i}: Move {vehicle} {direction} (cost: {cost})")
     else:
         print("No solution found.")
-#code da duoc sua
-# code 11
