@@ -175,16 +175,18 @@ if __name__ == "__main__":
     # Example Rush Hour board (6x6)
     board = [
         ['.', '.', '.', '.', '.', '.'],
-        ['.', '.', '.', '.', '.', '.'],
-        ['A', 'A', 'X', 'X', '.', '.'],
-        ['.', '.', '.', '.', '.', '.'],
+        ['.', '.', 'B', '.', 'C', '.'],
+        ['A', 'A', 'X', 'X', 'C', '.'],
+        ['.', '.', 'B', '.', 'C', '.'],
         ['.', '.', '.', '.', '.', '.'],
         ['.', '.', '.', '.', '.', '.']
     ]
 
     vehicles = {
         'X': {'positions': [(2, 2), (2, 3)], 'orientation': 'horizontal'},
-        'A': {'positions': [(2, 0), (2, 1)], 'orientation': 'horizontal'}
+        'A': {'positions': [(2, 0), (2, 1)], 'orientation': 'horizontal'},
+        'B': {'positions': [(1, 2), (3, 2)], 'orientation': 'vertical'},
+        'C': {'positions': [(2, 4), (3, 4), (4, 4)], 'orientation': 'vertical'}
     }
     unit_cost = 1
     game = RushHourGame(board, vehicles, unit_cost)
