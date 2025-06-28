@@ -107,11 +107,13 @@ class RushHourGame:
         return new_state
 
 def uniform_cost_search(game):
+    # Initialize the initial state with deep copies of the board and vehicles
     initial_state = {
         'board': deepcopy(game.board),
         'vehicles': deepcopy(game.vehicles)
     }
     
+    # Hash function to uniquely identify a state (board + vehicles)
     def get_state_hash(state):
         vehicles_tuple = tuple(
             (v, tuple(info['positions']), info['orientation'])
@@ -121,38 +123,43 @@ def uniform_cost_search(game):
         return (board_tuple, vehicles_tuple)
     state_hash = get_state_hash(initial_state)
     
+    # Repository to store all generated states
     state_repository = {state_hash: initial_state}
     
+    # Priority queue for Uniform Cost Search
     frontier = []
     heapq.heappush(frontier, (0, state_hash, []))
     
     explored = set()
-
+    #
     while frontier:
         total_cost, current_hash, path = heapq.heappop(frontier)
         current_state = state_repository[current_hash]
 
+        # Skip if this state has already been explored
         if current_hash in explored:
             continue
         explored.add(current_hash)
 
+        # Check if the goal state is reached
         if game.is_goal(current_state):
             return path, total_cost
 
+        # Generate all possible successor states
         for successor, cost in game.get_successors(current_state):
             successor_hash = get_state_hash(successor)
             
             if successor_hash not in explored:
                 new_cost = total_cost + cost
-                
-                # Tìm xe di chuyển
+
+                # Find which vehicle was moved
                 moved_vehicle = None
                 for vehicle in current_state['vehicles']:
                     if current_state['vehicles'][vehicle]['positions'] != successor['vehicles'][vehicle]['positions']:
                         moved_vehicle = vehicle
                         break
-                
-                # Xác định hướng di chuyển
+
+                # Determine the direction of movement
                 direction = ""
                 if moved_vehicle:
                     old_pos = current_state['vehicles'][moved_vehicle]['positions'][0]
@@ -161,14 +168,15 @@ def uniform_cost_search(game):
                         direction = "right" if new_pos[1] > old_pos[1] else "left"
                     else:
                         direction = "down" if new_pos[0] > old_pos[0] else "up"
-                
-                # Lưu state mới vào repository
+
+                # Save the new state to the repository
                 state_repository[successor_hash] = successor
-                
-                # Thêm vào frontier
+
+                # Add the new state to the frontier with the updated path
                 new_path = path + [(moved_vehicle, direction, new_cost)]
                 heapq.heappush(frontier, (new_cost, successor_hash, new_path))
     
+    # Return if no solution is found
     return None, float('inf')
 # Example usage
 if __name__ == "__main__":
