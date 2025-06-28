@@ -182,9 +182,9 @@ def uniform_cost_search(game):
 if __name__ == "__main__":
     # Example Rush Hour board (6x6)
     board = [
-        ['.', '.', '.', '.', '.', '.'],
-        ['.', '.', 'B', '.', 'C', '.'],
-        ['A', 'A', 'X', 'X', 'C', '.'],
+        ['.', '.', '.', '.', '.', 'D'],
+        ['.', '.', 'B', '.', 'C', 'D'],
+        ['A', 'A', 'X', 'X', 'C', 'D'],
         ['.', '.', 'B', '.', 'C', '.'],
         ['.', '.', '.', '.', '.', '.'],
         ['.', '.', '.', '.', '.', '.']
@@ -194,7 +194,8 @@ if __name__ == "__main__":
         'X': {'positions': [(2, 2), (2, 3)], 'orientation': 'horizontal'},
         'A': {'positions': [(2, 0), (2, 1)], 'orientation': 'horizontal'},
         'B': {'positions': [(1, 2), (3, 2)], 'orientation': 'vertical'},
-        'C': {'positions': [(2, 4), (3, 4), (4, 4)], 'orientation': 'vertical'}
+        'C': {'positions': [(2, 4), (3, 4), (4, 4)], 'orientation': 'vertical'},
+        'D': {'positions': [(0, 5), (1, 5), (2, 5)], 'orientation': 'vertical'} 
     }
     unit_cost = 1
     game = RushHourGame(board, vehicles, unit_cost)
